@@ -1,3 +1,2 @@
 pyrate-limiter
 requests
-typing_extensions

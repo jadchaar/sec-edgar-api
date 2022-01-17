@@ -4,29 +4,26 @@ from typing import List
 from ._types import SubmissionsType
 
 
-def validate_cik(func):
-    def wrapper(*args, **kwargs):
-        cik = str(kwargs["cik"] if "cik" in kwargs else args[1])
+def validate_cik(cik: str) -> str:
+    cik = str(cik).strip().zfill(10)
 
-        if not is_cik(cik) or len(cik) > 10:
-            raise ValueError(
-                "Invalid CIK. Please enter an valid SEC CIK at most 10 digits long."
-            )
+    if not is_cik(cik):
+        raise ValueError(
+            "Invalid CIK. Please enter an valid SEC CIK at most 10 digits long."
+        )
 
-        return func(*args, **kwargs)
-
-    return wrapper
+    return cik
 
 
 def is_cik(cik: str) -> bool:
     try:
         int(cik)
-        return True
+        return 1 <= len(cik) <= 10
     except ValueError:
         return False
 
 
-def merge_dicts_with_identical_keys(to_merge: List[SubmissionsType]) -> SubmissionsType:
+def merge_submission_dicts(to_merge: List[SubmissionsType]) -> SubmissionsType:
     """Merge dictionaries with same keys."""
     merged = {}
     for k in to_merge[0].keys():

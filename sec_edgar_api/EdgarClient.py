@@ -9,17 +9,23 @@ from ._constants import (
     BASE_URL_XBRL_FRAMES,
 )
 from ._types import JSONType
-from ._utils import merge_dicts_with_identical_keys, validate_cik
+from ._utils import merge_submission_dicts, validate_cik
 
 
 class EdgarClient(BaseClient):
     """An :class:`EdgarClient` object."""
 
-    def __init__(self, user_agent=str):
+    def __init__(self, user_agent: str):
         """Constructor for the :class:`EdgarClient` class."""
+        if not user_agent:
+            raise ValueError(
+                "Please enter a valid user-agent string of the form "
+                "'<Sample Company Name> <Sample Company Email>'. "
+                "This is required by the SEC to identify your requests "
+                "for rate-limiting purposes."
+            )
         super().__init__(user_agent)
 
-    @validate_cik
     def get_submissions(self, cik: str, *, handle_pagination: bool = True) -> JSONType:
         """Get submissions for a specified CIK. Requests data from the
         data.sec.gov/submissions API endpoint. Full API documentation:
@@ -37,7 +43,7 @@ class EdgarClient(BaseClient):
         :return: JSON response from the data.sec.gov/submissions/ API endpoint
             for the specified CIK.
         """
-        cik = str(cik).strip().zfill(10)
+        cik = validate_cik(cik)
         api_endpoint = f"{BASE_URL_SUBMISSIONS}/CIK{cik}.json"
         submissions = self._rate_limited_get(api_endpoint)
 
@@ -46,8 +52,7 @@ class EdgarClient(BaseClient):
 
         # Handle pagination for a large number of requests
         if handle_pagination and paginated_submissions:
-            recent = filings["recent"]
-            to_merge = [recent]
+            to_merge = [filings["recent"]]
             for submission in paginated_submissions:
                 filename = submission["name"]
                 api_endpoint = f"{BASE_URL_SUBMISSIONS}/{filename}"
@@ -56,12 +61,11 @@ class EdgarClient(BaseClient):
 
             # Merge all paginated submissions from files key into recent
             # and clear files list.
-            filings["recent"] = merge_dicts_with_identical_keys(to_merge)
+            filings["recent"] = merge_submission_dicts(to_merge)
             filings["files"] = []
 
         return submissions
 
-    @validate_cik
     def get_company_concepts(
         self,
         cik: str,
@@ -83,13 +87,12 @@ class EdgarClient(BaseClient):
         :return: JSON response from the data.sec.gov/api/xbrl/companyconcept/
             API endpoint for the specified CIK.
         """
-        cik = str(cik).strip().zfill(10)
+        cik = validate_cik(cik)
         api_endpoint = (
             f"{BASE_URL_XBRL_COMPANY_CONCEPTS}/CIK{cik}/{taxonomy}/{tag}.json"
         )
         return self._rate_limited_get(api_endpoint)
 
-    @validate_cik
     def get_company_facts(self, cik: str) -> JSONType:
         """Get all company concepts for a specified CIK. Requests data from the
         data.sec.gov/api/xbrl/companyfacts/ API endpoint. Full API documentation:
@@ -99,7 +102,7 @@ class EdgarClient(BaseClient):
         :return: JSON response from the data.sec.gov/api/xbrl/companyfacts/
             API endpoint for the specified CIK.
         """
-        cik = str(cik).strip().zfill(10)
+        cik = validate_cik(cik)
         api_endpoint = f"{BASE_URL_XBRL_COMPANY_FACTS}/CIK{cik}.json"
         return self._rate_limited_get(api_endpoint)
 

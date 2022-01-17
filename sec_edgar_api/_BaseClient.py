@@ -23,8 +23,6 @@ retries = Retry(
 
 
 class BaseClient:
-    # _session: ClassVar[requests.Session]
-
     def __init__(self, user_agent: str):
         self._session = requests.Session()
         self._session.headers.update(
@@ -44,6 +42,11 @@ class BaseClient:
 
     @limiter.ratelimit(delay=True)
     def _rate_limited_get(self, url: str) -> JSONType:
+        """Make a rate-limited GET request.
+
+        SEC limits users to a maximum of 10 requests per second.
+        Source: https://www.sec.gov/developer
+        """
         resp = self._session.get(url)
         try:
             resp.raise_for_status()
