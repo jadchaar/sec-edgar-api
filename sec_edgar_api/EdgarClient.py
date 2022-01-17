@@ -1,5 +1,5 @@
-"""Lightweight SEC EDGAR API wrapper."""
-from typing import Optional
+"""Unofficial SEC EDGAR API wrapper."""
+from typing import Union
 
 from ._BaseClient import BaseClient
 from ._constants import (
@@ -112,7 +112,7 @@ class EdgarClient(BaseClient):
         tag: str,
         unit: str,
         year: str,
-        quarter: Optional[int] = None,
+        quarter: Union[int, str, None] = None,
         instantaneous: bool = True,
     ) -> JSONType:
         """Get all aggregated company facts for a specified taxonomy and tag in the specified

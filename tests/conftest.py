@@ -23,7 +23,7 @@ def concept_data() -> Dict[str, str]:
         "tag": "AccountsPayableCurrent",
         "unit": "USD",
         "year": "2019",
-        "quarter": 1,
+        "quarter": "1",
     }
 
 

@@ -23,7 +23,7 @@ def test_cik_validation_error(edgar_client: EdgarClient):
 
 def test_user_agent_validation_error(edgar_client: EdgarClient):
     with pytest.raises(ValueError):
-        EdgarClient(user_agent=None)
+        EdgarClient(user_agent=None)  # type: ignore
 
     with pytest.raises(ValueError):
         EdgarClient(user_agent="")

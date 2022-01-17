@@ -31,7 +31,7 @@ dependencies = [
     "pyrate-limiter",
 ]
 requires-python = ">=3.6"
-description = "Lightweight unofficial SEC EDGAR API wrapper for Python"
+description = "Unofficial SEC EDGAR API wrapper for Python"
 keywords = ["sec", "edgar", "filing", "financial", "finance", "stocks", "mutual funds", "etfs", "cik", "ticker", "api wrapper"]
 dynamic = ["version"]
 
