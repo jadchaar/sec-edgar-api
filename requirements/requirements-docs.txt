@@ -1,0 +1,6 @@
+-r requirements.txt
+doc8
+m2r2
+sphinx
+sphinx-autobuild
+sphinx-autodoc-typehints
