@@ -30,8 +30,6 @@ $ pip install -U sec-edgar-api
 
 ### Basic Usage
 
-TODO
-
 ```python
 >>> from sec_edgar_api import EdgarClient
 
@@ -186,13 +184,7 @@ TODO
 
 # Get one fact for each reporting entity in specified
 # calendar period (Q1 2019)
->>> edgar.get_frames(
-        taxonomy="us-gaap",
-        tag="AccountsPayableCurrent",
-        unit="USD",
-        year="2019",
-        quarter=1,
-    )
+>>> edgar.get_frames(taxonomy="us-gaap", tag="AccountsPayableCurrent", unit="USD", year="2019", quarter=1)
 {
     "taxonomy": "us-gaap",
     "tag": "AccountsPayableCurrent",
@@ -225,12 +217,12 @@ TODO
 
 ## Wrapper Functions and Corresponding API Endpoints
 
-| Wrapper Function      | SEC EDGAR API Endpoint |
-| ----------- | ----------- |
-| `get_submissions`      | `data.sec.gov/submissions/`       |
-| `get_company_concept`   | `data.sec.gov/api/xbrl/companyconcept/`        |
-| `get_company_facts`   | `data.sec.gov/api/xbrl/companyfacts/`        |
-| `get_frames`   | `data.sec.gov/api/xbrl/frames/`        |
+|                        Wrapper Function                         |          API Route          |                                         Full API URI                                         |
+| --------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| `get_submissions(cik)`                                          | `/submissions/`             | `data.sec.gov/submissions/CIK{cik}.json`                                                     |
+| `get_company_concept(cik, taxonomy, tag)`                       | `/api/xbrl/companyconcept/` | `data.sec.gov/api/xbrl/companyconcept/CIK{cik}/{taxonomy}/{tag}.json`                        |
+| `get_company_facts(cik)`                                        | `/api/xbrl/companyfacts/`   | `data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json`                                           |
+| `get_frames(taxonomy, tag, unit, year, quarter, instantaneous)` | `/api/xbrl/frames/`         | `data.sec.gov/api/xbrl/frames/{taxonomy}/{tag}/{unit}/CY{year}{quarter}{instantaneous}.json` |
 
 More details on each endpoint can be found on the official SEC API documentation: [sec.gov/edgar/sec-api-documentation](https://www.sec.gov/edgar/sec-api-documentation).
 
