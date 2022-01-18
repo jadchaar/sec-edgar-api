@@ -66,7 +66,7 @@ class EdgarClient(BaseClient):
 
         return submissions
 
-    def get_company_concepts(
+    def get_company_concept(
         self,
         cik: str,
         taxonomy: str,

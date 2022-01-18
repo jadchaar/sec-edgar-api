@@ -26,14 +26,14 @@ def test_get_submissions(edgar_client: EdgarClient, apple_stock: Dict[str, str])
         assert expected == len(merged_list)
 
 
-def test_get_company_concepts(
+def test_get_company_concept(
     edgar_client: EdgarClient, apple_stock: Dict[str, str], concept_data: Dict[str, str]
 ):
     cik = apple_stock["cik"]
     name = apple_stock["name"]
     taxonomy = concept_data["taxonomy"]
     tag = concept_data["tag"]
-    company_concepts = edgar_client.get_company_concepts(
+    company_concepts = edgar_client.get_company_concept(
         cik=cik, taxonomy=taxonomy, tag=tag
     )
 
