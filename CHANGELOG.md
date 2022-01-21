@@ -1,3 +1,5 @@
 # Changelog
 
-## 1.0.0 - 1/x/22
+## 1.0.0 - 1/20/22
+
+- Initial release.
