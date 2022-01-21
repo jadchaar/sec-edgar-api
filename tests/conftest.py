@@ -17,13 +17,30 @@ def apple_stock() -> Dict[str, str]:
 
 
 @pytest.fixture(scope="session")
-def concept_data() -> Dict[str, str]:
+def base_concept_data() -> Dict[str, str]:
     return {
         "taxonomy": "us-gaap",
-        "tag": "AccountsPayableCurrent",
         "unit": "USD",
         "year": "2019",
         "quarter": "1",
+    }
+
+
+@pytest.fixture(scope="session")
+def concept_data_accounts_payable_current(
+    base_concept_data: Dict[str, str]
+) -> Dict[str, str]:
+    return {
+        "tag": "AccountsPayableCurrent",
+        **base_concept_data,
+    }
+
+
+@pytest.fixture(scope="session")
+def concept_data_gross_profit(base_concept_data: Dict[str, str]) -> Dict[str, str]:
+    return {
+        "tag": "GrossProfit",
+        **base_concept_data,
     }
 
 

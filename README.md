@@ -28,7 +28,7 @@ Install and update this package using [pip](https://pip.pypa.io/en/stable/gettin
 $ pip install -U sec-edgar-api
 ```
 
-### Basic Usage
+### Usage
 
 ```python
 >>> from sec_edgar_api import EdgarClient

@@ -1,7 +1,5 @@
 from typing import Dict
 
-import pytest
-
 from sec_edgar_api import EdgarClient
 
 
@@ -27,12 +25,14 @@ def test_get_submissions(edgar_client: EdgarClient, apple_stock: Dict[str, str])
 
 
 def test_get_company_concept(
-    edgar_client: EdgarClient, apple_stock: Dict[str, str], concept_data: Dict[str, str]
+    edgar_client: EdgarClient,
+    apple_stock: Dict[str, str],
+    concept_data_accounts_payable_current: Dict[str, str],
 ):
     cik = apple_stock["cik"]
     name = apple_stock["name"]
-    taxonomy = concept_data["taxonomy"]
-    tag = concept_data["tag"]
+    taxonomy = concept_data_accounts_payable_current["taxonomy"]
+    tag = concept_data_accounts_payable_current["tag"]
     company_concepts = edgar_client.get_company_concept(
         cik=cik, taxonomy=taxonomy, tag=tag
     )
@@ -64,13 +64,13 @@ def test_get_company_facts(edgar_client: EdgarClient, apple_stock: Dict[str, str
 
 
 def test_get_frames_instantaneous(
-    edgar_client: EdgarClient, concept_data: Dict[str, str]
+    edgar_client: EdgarClient, concept_data_accounts_payable_current: Dict[str, str]
 ):
-    taxonomy = concept_data["taxonomy"]
-    tag = concept_data["tag"]
-    unit = concept_data["unit"]
-    year = concept_data["year"]
-    quarter = concept_data["quarter"]
+    taxonomy = concept_data_accounts_payable_current["taxonomy"]
+    tag = concept_data_accounts_payable_current["tag"]
+    unit = concept_data_accounts_payable_current["unit"]
+    year = concept_data_accounts_payable_current["year"]
+    quarter = concept_data_accounts_payable_current["quarter"]
     frames = edgar_client.get_frames(
         taxonomy=taxonomy,
         tag=tag,
@@ -80,27 +80,26 @@ def test_get_frames_instantaneous(
         instantaneous=True,
     )
 
-    assert frames["taxonomy"] == taxonomy
-    assert frames["tag"] == tag
-    assert frames["ccp"] == "CY2019Q1I"
-    assert frames["uom"] == unit
-
     assert "label" in frames
     assert "description" in frames
     assert "pts" in frames
     assert "data" in frames
+
+    assert frames["taxonomy"] == taxonomy
+    assert frames["tag"] == tag
+    assert frames["uom"] == unit
+    assert frames["ccp"] == "CY2019Q1I"
     assert len(frames["data"]) > 0
 
 
-@pytest.mark.skip("Edgar API is returning 404s. Reported bug to SEC.")
 def test_get_frames_not_instantaneous(
-    edgar_client: EdgarClient, concept_data: Dict[str, str]
+    edgar_client: EdgarClient, concept_data_gross_profit: Dict[str, str]
 ):
-    taxonomy = concept_data["taxonomy"]
-    tag = concept_data["tag"]
-    unit = concept_data["unit"]
-    year = concept_data["year"]
-    quarter = concept_data["quarter"]
+    taxonomy = concept_data_gross_profit["taxonomy"]
+    tag = concept_data_gross_profit["tag"]
+    unit = concept_data_gross_profit["unit"]
+    year = concept_data_gross_profit["year"]
+    quarter = concept_data_gross_profit["quarter"]
     frames = edgar_client.get_frames(
         taxonomy=taxonomy,
         tag=tag,
@@ -111,16 +110,16 @@ def test_get_frames_not_instantaneous(
     )
 
     assert frames["ccp"] == "CY2019Q1"
+    assert len(frames["data"]) > 0
 
 
-@pytest.mark.skip("Edgar API is returning 404s. Reported bug to SEC.")
 def test_get_frames_entire_year(
-    edgar_client: EdgarClient, concept_data: Dict[str, str]
+    edgar_client: EdgarClient, concept_data_gross_profit: Dict[str, str]
 ):
-    taxonomy = concept_data["taxonomy"]
-    tag = concept_data["tag"]
-    unit = concept_data["unit"]
-    year = concept_data["year"]
+    taxonomy = concept_data_gross_profit["taxonomy"]
+    tag = concept_data_gross_profit["tag"]
+    unit = concept_data_gross_profit["unit"]
+    year = concept_data_gross_profit["year"]
     frames = edgar_client.get_frames(
         taxonomy=taxonomy,
         tag=tag,
@@ -131,3 +130,4 @@ def test_get_frames_entire_year(
     )
 
     assert frames["ccp"] == "CY2019"
+    assert len(frames["data"]) > 0
