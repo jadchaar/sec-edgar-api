@@ -22,7 +22,7 @@
 
 ### Installation
 
-not needed
+not there yet -> but you can install the one before the fork
 
 ### Usage
 
