@@ -22,11 +22,7 @@
 
 ### Installation
 
-Install and update this package using [pip](https://pip.pypa.io/en/stable/getting-started/):
-
-```console
-$ pip install -U sec-edgar-api
-```
+not needed
 
 ### Usage
 
