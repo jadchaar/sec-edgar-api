@@ -13,6 +13,7 @@ from ._utils import merge_submission_dicts, validate_cik
 
 from .termination.usGaap.IncomeStatement.TotalRevenue import TotalRevenue
 
+import json
 import pandas as pd
 from datetime import datetime
 from dateutil import relativedelta
