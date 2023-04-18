@@ -1,35 +1,31 @@
 """Unofficial SEC EDGAR API wrapper."""
+from calendar import different_locale
 from typing import Union
+from zoneinfo import available_timezones
 
 from ._BaseClient import BaseClient
-from ._constants import (
-    BASE_URL_SUBMISSIONS,
-    BASE_URL_XBRL_COMPANY_CONCEPTS,
-    BASE_URL_XBRL_COMPANY_FACTS,
-    BASE_URL_XBRL_FRAMES,
+from .EdgarApi import EdgarApi
+from ._UserAgent import (
+    BASE_USER_AGENT
 )
 from ._types import JSONType
 from ._utils import merge_submission_dicts, validate_cik
 
+from .termination.usGaap.IncomeStatement.TotalRevenue import TotalRevenue
 
-class EdgarClient(BaseClient):
+import json
+import pandas as pd
+from datetime import datetime
+from dateutil import relativedelta
+
+
+class EdgarClient():
     """An :class:`EdgarClient` object."""
 
-    def __init__(self, user_agent: str):
-        """Constructor for the :class:`EdgarClient` class."""
-        if not user_agent:
-            raise ValueError(
-                "Please enter a valid user-agent string of the form "
-                "'<Sample Company Name> <Sample Company Email>'. "
-                "This is required by the SEC to identify your requests "
-                "for rate-limiting purposes."
-            )
-        super().__init__(user_agent)
+  
 
-    def get_submissions(self, cik: str, *, handle_pagination: bool = True) -> JSONType:
-        """Get submissions for a specified CIK. Requests data from the
-        data.sec.gov/submissions API endpoint. Full API documentation:
-        https://www.sec.gov/edgar/sec-api-documentation.
+    def get_filling(cik: str, *, handle_pagination: bool = True) -> JSONType:
+        """Random test.
 
         :param cik: CIK to obtain submissions for.
         :param handle_pagination: whether to automatically handle API pagination,
@@ -43,97 +39,123 @@ class EdgarClient(BaseClient):
         :return: JSON response from the data.sec.gov/submissions/ API endpoint
             for the specified CIK.
         """
-        cik = validate_cik(cik)
-        api_endpoint = f"{BASE_URL_SUBMISSIONS}/CIK{cik}.json"
-        submissions = self._rate_limited_get(api_endpoint)
 
-        filings = submissions["filings"]
-        paginated_submissions = filings["files"]
+        edgar = EdgarApi(user_agent=BASE_USER_AGENT)
 
-        # Handle pagination for a large number of requests
-        if handle_pagination and paginated_submissions:
-            to_merge = [filings["recent"]]
-            for submission in paginated_submissions:
-                filename = submission["name"]
-                api_endpoint = f"{BASE_URL_SUBMISSIONS}/{filename}"
-                resp = self._rate_limited_get(api_endpoint)
-                to_merge.append(resp)
+        #get all the facts that we find for this company
+        secGovFacts = edgar.get_company_facts(cik=cik)["facts"]["us-gaap"].keys()
 
-            # Merge all paginated submissions from files key into recent
-            # and clear files list.
-            filings["recent"] = merge_submission_dicts(to_merge)
-            filings["files"] = []
+        #overall data save array
+        dataBlobArray = []
 
-        return submissions
+        #seach if we find the saved termination
+        for secGovFact in secGovFacts:
+            # for TotalRevenue
+            for totalRevenueFact in TotalRevenue:
+                if totalRevenueFact == secGovFact:
+                    # find termination so get data
+                    respones = edgar.get_company_concept(cik=cik, taxonomy="us-gaap", tag=totalRevenueFact)['units']["USD"]
+                    #for every dataframe that we have
+                    for factDataFrame in respones:
 
-    def get_company_concept(
-        self,
-        cik: str,
-        taxonomy: str,
-        tag: str,
-    ) -> JSONType:
-        """Get company concepts for a specified CIK. Requests data from the
-        data.sec.gov/api/xbrl/companyconcept/ API endpoint. Returns all
-        the XBRL disclosures for a single company (CIK) and concept (taxonomy and
-        tag), with a separate array of facts for each unit of measure that the
-        company has chosen to disclose (e.g. net profits reported in U.S. dollars
-        and in Canadian dollars). Full API documentation:
-        https://www.sec.gov/edgar/sec-api-documentation.
+                        # make sure that we always target the correct data frame
+                        startDate = datetime.strptime(factDataFrame["start"], '%Y-%m-%d')
+                        endDate = datetime.strptime(factDataFrame["end"], '%Y-%m-%d')
+                        diff = relativedelta.relativedelta(endDate, startDate)
+                        diffYears = diff.years,
+                        diffMonths = diff.months,
+                        targetYear = int(datetime.strptime(factDataFrame["end"], '%Y-%m-%d').strftime("%Y"))
 
-        :param cik: CIK to obtain company concepts for.
-        :param taxonomy: reporting taxonomy (e.g. us-gaap, ifrs-full, dei, srt).
-            More info: https://www.sec.gov/info/edgar/edgartaxonomies.shtml.
-        :param tag: reporting tag (e.g. AccountsPayableCurrent).
-        :return: JSON response from the data.sec.gov/api/xbrl/companyconcept/
-            API endpoint for the specified CIK.
-        """
-        cik = validate_cik(cik)
-        api_endpoint = (
-            f"{BASE_URL_XBRL_COMPANY_CONCEPTS}/CIK{cik}/{taxonomy}/{tag}.json"
-        )
-        return self._rate_limited_get(api_endpoint)
+                        # if full year data is a year or 11 to 12 months difference
+                        # if quarter is 2 to 3 months difference
+                        if(
+                            #targetYear > 2009 and
+                            (factDataFrame["fp"] == "FY" and (diffYears[0] == 1 or diffMonths[0] >= 11) or
+                            factDataFrame["fp"] != "FY" and (diffMonths[0] == 2 or diffMonths[0] == 3))
+                        ):
+                            dataBlobArray.append([
+                                targetYear, #fy key is incorrect in dates before 2019
+                                startDate,
+                                endDate,
+                                factDataFrame["fp"], #FY = full year & QX
+                                'Income',
+                                'TotalRevenue',
+                                factDataFrame["val"],
+                                factDataFrame["form"],
+                                diff
+                            ])
 
-    def get_company_facts(self, cik: str) -> JSONType:
-        """Get all company concepts for a specified CIK. Requests data from the
-        data.sec.gov/api/xbrl/companyfacts/ API endpoint. Full API documentation:
-        https://www.sec.gov/edgar/sec-api-documentation.
+        # drop duplicates
+        # clean data = make sure if there are doubles -> take one (this will have a small diff)
+        dataBlob = pd.DataFrame(dataBlobArray, columns=['year', 'start', 'end', 'type', 'statement', 'tag', 'value', 'form', 'diff']).drop_duplicates()
 
-        :param cik: CIK to obtain company concepts for.
-        :return: JSON response from the data.sec.gov/api/xbrl/companyfacts/
-            API endpoint for the specified CIK.
-        """
-        cik = validate_cik(cik)
-        api_endpoint = f"{BASE_URL_XBRL_COMPANY_FACTS}/CIK{cik}.json"
-        return self._rate_limited_get(api_endpoint)
+        ## get all the years
+        allYears = dataBlob["year"].drop_duplicates()
+        allYearsArray = allYears.to_numpy()
 
-    def get_frames(
-        self,
-        taxonomy: str,
-        tag: str,
-        unit: str,
-        year: str,
-        quarter: Union[int, str, None] = None,
-        instantaneous: bool = True,
-    ) -> JSONType:
-        """Get all aggregated company facts for a specified taxonomy and tag in the specified
-        calendar period. Requests data from the data.sec.gov/api/xbrl/frames/ API endpoint.
-        Supports for annual, quarterly and instantaneous data. Example:
-        us-gaap / AccountsPayableCurrent / USD / CY2019Q1I.
-        Full API documentation: https://www.sec.gov/edgar/sec-api-documentation.
+        ## get all the time frames and make key to create dataframe
+        allDataFrameKeys = []
 
-        :param taxonomy: reporting taxonomy (e.g. us-gaap, ifrs-full, dei, srt).
-            More info: https://www.sec.gov/info/edgar/edgartaxonomies.shtml.
-        :param tag: reporting tag (e.g. AccountsPayableCurrent).
-        :param unit: unit of measure specified in the XBRL (e.g. USD).
-        :param year: calendar period year.
-        :param quarter: calendar period quarter, optional. Defaults to whole year.
-        :param instantaneous: whether to request instantaneous data, defaults to True.
-        :return: JSON response from the data.sec.gov/api/xbrl/frames/ API endpoint.
-        """
-        _quarter = (
-            f"Q{quarter}" if quarter is not None and 1 <= int(quarter) <= 4 else ""
-        )
-        _instantaneous = "I" if instantaneous else ""
-        period = f"CY{year}{_quarter}{_instantaneous}"
-        api_endpoint = f"{BASE_URL_XBRL_FRAMES}/{taxonomy}/{tag}/{unit}/{period}.json"
-        return self._rate_limited_get(api_endpoint)
+        dataFrames = {}
+        for year in allYearsArray:
+            availableFrames = dataBlob.loc[dataBlob['year'] == year]['type'].drop_duplicates()
+            for frame in availableFrames:
+                key = str(year) + '_' + frame
+                allDataFrameKeys.append(key)
+
+                dataRow = dataBlob.loc[(dataBlob['year'] == year) & (dataBlob['type'] == frame)]
+
+                dataFrames[key] = {
+                    'Income': pd.DataFrame({
+                        'tag': [dataRow['tag'].iloc[0]],
+                        'value': [int(dataRow['value'].iloc[0])],
+                        'year': [dataRow['year'].iloc[0]],
+                        'frame': [dataRow['type'].iloc[0]],
+                    }),
+                    'Balance': pd.DataFrame({
+                        'tag': [dataRow['tag'].iloc[0]],
+                        'value': [int(dataRow['value'].iloc[0])],
+                        'year': [dataRow['year'].iloc[0]],
+                        'frame': [dataRow['type'].iloc[0]],
+                    }),
+                    'Cash': pd.DataFrame({
+                        'tag': [dataRow['tag'].iloc[0]],
+                        'value': [int(dataRow['value'].iloc[0])],
+                        'year': [dataRow['year'].iloc[0]],
+                        'frame': [dataRow['type'].iloc[0]],
+                    })
+                }
+                
+
+
+
+        ## create data frame and push in data for the data frame
+
+
+        #print(dataBlob.to_string())
+        #print(allYearsArray)
+        print(allDataFrameKeys)
+        #print([availableFrames[0]])
+
+        #for dataFrameKey in allDataFrameKeys:
+        #    print("*******************************")
+        #    print("**********"+dataFrameKey+"**************")
+        #    print("*******************************")
+        #    print("\n")
+        #    print(f"---- Income:")
+        #    print(dataFrames[dataFrameKey]['Income'])
+        #    print("\n")
+        #    print(f"---- Balance:")
+        #    print(dataFrames[dataFrameKey]['Balance'])
+        #    print("\n")
+        #    print(f"---- Cash:")
+        #    print(dataFrames[dataFrameKey]['Cash'])
+        #    print("\n")
+        #    print("*******************************")
+
+
+
+
+
+
+       
