@@ -11,7 +11,6 @@ from ._constants import (
 from ._types import JSONType
 from ._utils import merge_submission_dicts, validate_cik
 
-
 class EdgarApi(BaseClient):
     """An :class:`EdgarClient` object."""
     def __init__(self, user_agent: str):

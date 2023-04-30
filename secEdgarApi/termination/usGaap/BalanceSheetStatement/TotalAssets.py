@@ -1,4 +1,4 @@
-FACT_NAME = "Total_Assets"
+TOTAL_ASSETS = "Total_Assets"
 
 TotalAssets=[
     "Assets",

@@ -4,7 +4,7 @@ class TerminationHandler():
     
     def get_usGaap(cik: str):
         usGaapWrapper = {}
-        usGaapWrapper["usGaap"] = UsGaapHandler.getUsGaapFacts(cik=cik)
+        usGaapWrapper["usGaap"] = UsGaapHandler.getUsGaapFacts(UsGaapHandler(), cik=cik)
 
         return [usGaapWrapper]
         

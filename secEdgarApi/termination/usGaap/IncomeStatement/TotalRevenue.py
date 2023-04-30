@@ -1,8 +1,7 @@
-FACT_NAME = "Total_Revenue"
+TOTAL_REVENUE = "Total_Revenue"
 
 TotalRevenue=[
     "RevenueFromContractWithCustomerExcludingAssessedTax",
     "SalesRevenueNet",
-    "RevenueFromContractWithCustomerExcludingAssessedTax",
     "Revenues"
 ]

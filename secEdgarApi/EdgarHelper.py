@@ -53,7 +53,6 @@ class EdgarHelper():
                             ]) 
                     except KeyError:
                         print("secgov respone structure for income  not correct - please log a bug")
-                        
     return blob
   
 

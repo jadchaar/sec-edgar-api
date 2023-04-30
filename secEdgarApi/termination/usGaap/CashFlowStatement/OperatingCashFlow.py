@@ -1,4 +1,4 @@
-FACT_NAME = "Operating_CashFlow"
+OPERATING_CASHFLOW = "Operating_CashFlow"
 
 OperatingCashFlow=[
     "NetCashProvidedByUsedInOperatingActivities"

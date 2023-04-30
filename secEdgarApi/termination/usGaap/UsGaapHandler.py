@@ -3,14 +3,13 @@ from .CashFlowStatement.CashFlowStatement import CashFlowStatement
 from .BalanceSheetStatement.BalanceSheetStatement import BalanceSheetStatement
 from .IncomeStatement.IncomeStatement import IncomeStatement
 
-
 from secEdgarApi._UserAgent import (
     BASE_USER_AGENT
 )
 
 class UsGaapHandler:
     
-    def getUsGaapFacts(cik: str):
+    def getUsGaapFacts(self, cik: str):
         api = EdgarApi(user_agent=BASE_USER_AGENT)
         
         secGovFacts = api.get_company_facts(cik=cik)["facts"]["us-gaap"].keys()
@@ -34,29 +33,36 @@ class UsGaapHandler:
                 key = str(year) + '_' + frame
                 allDataFrameKeys.append(key)
 
-                incomeStatementDataRows = incomeStatement.loc[(incomeStatement['year'] == year) & (incomeStatement['type'] == frame)]
+                incomeStatementDataRows = incomeStatement.loc[(incomeStatement['year'] == year) & (incomeStatement['type'] == frame)].drop_duplicates(subset=['tag'])
                 balanceSheetStatementDataRows = balanceSheetStatement.loc[(balanceSheetStatement['year'] == year) & (balanceSheetStatement['type'] == frame)]                
                 cashFlowStatementDataRows = cashFlowStatement.loc[(cashFlowStatement['year'] == year) & (cashFlowStatement['type'] == frame)]
 
                 #turn into Json
                 dataFrames[key] = {
-                    'IncomeStatement': {
-                        'tag': incomeStatementDataRows['tag'].iloc[0] if len(incomeStatementDataRows['tag'] != 0 ) else "XXX",
-                        'value': int(incomeStatementDataRows['value'].iloc[0]) if len(incomeStatementDataRows['tag'] != 0 ) else "XXX",
-                        'year': incomeStatementDataRows['year'].iloc[0] if len(incomeStatementDataRows['tag'] != 0 ) else "XXX",
-                        'frame': incomeStatementDataRows['type'].iloc[0] if len(incomeStatementDataRows['tag'] != 0 ) else "XXX",
-                    },
-                    'BalanceSheetStatement': {
-                        'tag': balanceSheetStatementDataRows['tag'].iloc[0] if len(balanceSheetStatementDataRows['tag'] != 0 ) else "XXX",
-                        'value': int(balanceSheetStatementDataRows['value'].iloc[0]) if len(balanceSheetStatementDataRows['value'] != 0 ) else "XXX",
-                        'year': balanceSheetStatementDataRows['year'].iloc[0] if len(balanceSheetStatementDataRows['year'] != 0 ) else "XXX",
-                        'frame': balanceSheetStatementDataRows['type'].iloc[0] if len(balanceSheetStatementDataRows['type'] != 0 ) else "XXX",
-                    },
-                    'CashFlowStatement': {
-                        'tag': cashFlowStatementDataRows['tag'].iloc[0] if len(cashFlowStatementDataRows['tag'] != 0 ) else "XXX",
-                        'value': int(cashFlowStatementDataRows['value'].iloc[0]) if len(cashFlowStatementDataRows['tag'] != 0 ) else "XXX",
-                        'year': cashFlowStatementDataRows['year'].iloc[0] if len(cashFlowStatementDataRows['tag'] != 0 ) else "XXX",
-                        'frame': cashFlowStatementDataRows['type'].iloc[0] if len(cashFlowStatementDataRows['tag'] != 0 ) else "XXX",
-                    }
+                    'IncomeStatement': self.formatToStatment(incomeStatementDataRows),
+                    'BalanceSheetStatement': self.formatToStatment(balanceSheetStatementDataRows),
+                    'CashFlowStatement': self.formatToStatment(cashFlowStatementDataRows),
                 }
-        return dataFrames        
+        return dataFrames
+
+    def formatToStatment(self, dataRows):
+        # Create an empty dictionary to store the results
+        result = {}
+
+        # Get a list of all the unique tags
+        unique_tags = dataRows['tag'].unique()
+
+        # Loop through each tag and create the dictionary for that tag
+        for tag in unique_tags:
+            # Get the rows for the current tag
+            tag_rows = dataRows[dataRows['tag'] == tag]
+
+            # Check if there are any rows for this tag
+            if not tag_rows.empty:
+                # Create the dictionary for this tag
+                result[tag] = int(tag_rows['value'].iloc[0]) if len(tag_rows['value'] != 0 ) else "XXX"
+            else:
+                # If there are no rows for this tag, set the values to "XXX"
+                result[tag] = "XXX"
+            
+        return [result] 
