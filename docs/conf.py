@@ -21,7 +21,7 @@ exec(version, about)
 # -- Project information -----------------------------------------------------
 
 project = "SEC EDGAR API Wrapper 🤖"
-copyright = "2022, Jad Chaar"
+copyright = "2023, Jad Chaar"
 author = "Jad Chaar"
 
 release = about["__version__"]
