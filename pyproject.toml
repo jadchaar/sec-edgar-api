@@ -18,19 +18,19 @@ classifiers = [
     "Topic :: Office/Business :: Financial :: Investment",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: OS Independent",
 ]
 dependencies = [
     "requests",
-    "pyrate-limiter",
+    "pyrate-limiter>=3.1.0"
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.8"
 description = "Unofficial SEC EDGAR API wrapper for Python"
 keywords = ["sec", "edgar", "filing", "financial", "finance", "stocks", "mutual funds", "etfs", "cik", "ticker", "api wrapper"]
 dynamic = ["version"]
