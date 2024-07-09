@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
     "requests",
-    "pyrate-limiter>=3.1.0"
+    "pyrate-limiter>=3.6.1"
 ]
 requires-python = ">=3.8"
 description = "Unofficial SEC EDGAR API wrapper for Python"

@@ -226,6 +226,8 @@ $ pip install -U sec-edgar-api
 
 More details on each endpoint can be found on the official SEC API documentation: [sec.gov/edgar/sec-api-documentation](https://www.sec.gov/edgar/sec-api-documentation).
 
+## Mute Pyrate Limiter Logging
+
 ## Contributing
 
 If you encounter a bug or would like to see a new company filing or feature added to **sec-edgar-api**, please [file an issue](https://github.com/jadchaar/sec-edgar-api/issues) or [submit a pull request](https://help.github.com/en/articles/creating-a-pull-request).
