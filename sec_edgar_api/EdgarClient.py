@@ -1,4 +1,5 @@
 """Unofficial SEC EDGAR API wrapper."""
+
 from typing import Union
 
 from ._BaseClient import BaseClient
