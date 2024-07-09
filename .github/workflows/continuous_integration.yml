@@ -67,7 +67,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: |
-          pip install -U pip setuptools wheel
+          pip --force-reinstall -U pip setuptools wheel
           pip install -U tox
       - name: Lint code
         run: tox -e lint -- --show-diff-on-failure
